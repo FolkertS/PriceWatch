@@ -25,7 +25,9 @@ UA = (
 def main():
     with sync_playwright() as p:
         browser = p.chromium.launch(
-            args=["--disable-blink-features=AutomationControlled"]
+            channel="chrome",
+            headless=False,
+            args=["--disable-blink-features=AutomationControlled"],
         )
         context = browser.new_context(user_agent=UA, locale="nl-NL")
         # Reduce obvious "this is an automated browser" fingerprints.
