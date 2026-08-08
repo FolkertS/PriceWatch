@@ -20,11 +20,13 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb
           pip install playwright
-          playwright install --with-deps chromium
+          playwright install --with-deps chrome
 
       - name: Run price check
-        run: python check_price.py
+        run: xvfb-run -a python check_price.py
 
       - name: Upload debug page
         if: always()
