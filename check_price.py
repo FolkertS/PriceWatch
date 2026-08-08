@@ -34,11 +34,20 @@ def main():
         )
         page = context.new_page()
         page.goto(URL, wait_until="load", timeout=60000)
-        # Give client-side rendering a few seconds to finish filling in
-        # the price -- "networkidle" isn't used here because this page
-        # keeps background tracker/analytics requests going indefinitely,
-        # so that condition would never actually be satisfied.
-        page.wait_for_timeout(6000)
+
+        # Cloudflare's automated challenge page ("Even geduld..." / "Just a
+        # moment...") can appear first and needs a few seconds of real JS
+        # execution to resolve and redirect to the actual page. Poll for
+        # that instead of guessing a fixed wait time.
+        for _ in range(15):  # up to ~30s total
+            title = page.title()
+            if "Even geduld" not in title and "Just a moment" not in title:
+                break
+            page.wait_for_timeout(2000)
+
+        # Small extra buffer for the real page's own client-side rendering
+        # once the challenge has cleared.
+        page.wait_for_timeout(3000)
         html = page.content()
         browser.close()
 
@@ -47,6 +56,15 @@ def main():
     # of guessed at blindly.
     with open("debug_page.html", "w", encoding="utf-8") as f:
         f.write(html)
+
+    if "Even geduld" in html or "Just a moment" in html:
+        print(
+            "ERROR: still stuck on Cloudflare's challenge page after "
+            "~30s -- this points to the automated browser being "
+            "detected/blocked, not a timing issue.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
     if "Sorry, this page is not available" in html:
         print(
