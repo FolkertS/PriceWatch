@@ -1,0 +1,35 @@
+name: Check Back Market Premium Price
+
+on:
+  schedule:
+    - cron: "0 7,19 * * *"   # 07:00 and 19:00 UTC daily -- edit as you like
+  workflow_dispatch: {}      # lets you trigger it manually from the Actions tab
+
+permissions:
+  contents: write            # needed so the workflow can commit the result
+
+jobs:
+  check-price:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+
+      - name: Run price check
+        run: python check_price.py
+
+      - name: Commit result
+        run: |
+          git config user.name "price-bot"
+          git config user.email "price-bot@users.noreply.github.com"
+          git add premium_price.txt
+          git diff --quiet --cached || git commit -m "Update Premium price"
+          git push
