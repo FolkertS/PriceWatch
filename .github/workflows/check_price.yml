@@ -26,6 +26,14 @@ jobs:
       - name: Run price check
         run: python check_price.py
 
+      - name: Upload debug page
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-page
+          path: debug_page.html
+          retention-days: 3
+
       - name: Commit result
         run: |
           git config user.name "price-bot"
