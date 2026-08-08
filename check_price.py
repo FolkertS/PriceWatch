@@ -7,7 +7,7 @@
 # to install. Built for a DS216j but will run on any Synology.
 #
 # SET THESE TWO PATHS before using:
-LOGDIR="/volume1/homes/YOUR_USERNAME/backmarket"
+LOGDIR="/volume1/homes/Swoedie/Drive/Scrapers/iPhone"
 LOGFILE="$LOGDIR/premium_price_log.csv"
 COOKIEJAR="$LOGDIR/cookies.txt"
 
