@@ -33,7 +33,12 @@ def main():
             "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
         )
         page = context.new_page()
-        page.goto(URL, wait_until="networkidle", timeout=60000)
+        page.goto(URL, wait_until="load", timeout=60000)
+        # Give client-side rendering a few seconds to finish filling in
+        # the price -- "networkidle" isn't used here because this page
+        # keeps background tracker/analytics requests going indefinitely,
+        # so that condition would never actually be satisfied.
+        page.wait_for_timeout(6000)
         html = page.content()
         browser.close()
 
