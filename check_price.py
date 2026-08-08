@@ -42,13 +42,31 @@ def main():
         html = page.content()
         browser.close()
 
+    # Always save what the browser actually saw, so a failure can be
+    # inspected directly (via the debug-page workflow artifact) instead
+    # of guessed at blindly.
+    with open("debug_page.html", "w", encoding="utf-8") as f:
+        f.write(html)
+
+    if "Sorry, this page is not available" in html:
+        print(
+            "ERROR: page appears blocked (bot-protection message present "
+            "even in the real browser)",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
     # Same anchor logic as the original curl attempt: the "Premium"
     # condition option is the only one marked with the small diamond
     # icon, right before its price -- this avoids matching the word
     # "Premium" elsewhere on the page (e.g. the review filter).
     match = re.search(r"outline-diamond[^€]*€[^0-9]*([0-9][0-9.,]*)", html)
     if not match:
-        print("ERROR: Premium price not found in rendered page", file=sys.stderr)
+        print(
+            f"ERROR: Premium price not found in rendered page "
+            f"({len(html)} chars). Check the debug-page artifact.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     price = match.group(1)
